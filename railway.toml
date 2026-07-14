@@ -1,12 +1,12 @@
 [build]
 builder = "nixpacks"
 buildCommand = "npm run build"
-startCommand = "npm start"
 
 # Build-time only (read by nixpacks).
 [build.env]
 NIXPACKS_NODE_VERSION = "22"
 
 [deploy]
+startCommand = "npm start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
