@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm run build"
+startCommand = "npm start"
+
+[build.env]
+NIXPACKS_NODE_VERSION = "22"
+NITRO_HOST = "0.0.0.0"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 100

@@ -1,0 +1,257 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Canvas of Deception — Minimalist Gallery */
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.375rem;
+  /* dark gallery */
+  --background: oklch(0.14 0.005 60);
+  --foreground: oklch(0.94 0.02 80);
+  --card: oklch(0.18 0.006 60);
+  --card-foreground: oklch(0.94 0.02 80);
+  --popover: oklch(0.18 0.006 60);
+  --popover-foreground: oklch(0.94 0.02 80);
+  --primary: oklch(0.78 0.13 82);          /* gold */
+  --primary-foreground: oklch(0.14 0.005 60);
+  --secondary: oklch(0.24 0.008 60);
+  --secondary-foreground: oklch(0.94 0.02 80);
+  --muted: oklch(0.22 0.006 60);
+  --muted-foreground: oklch(0.68 0.02 80);
+  --accent: oklch(0.78 0.13 82);
+  --accent-foreground: oklch(0.14 0.005 60);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.3 0.01 70);
+  --input: oklch(0.24 0.008 60);
+  --ring: oklch(0.78 0.13 82);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.18 0.006 60);
+  --sidebar-foreground: oklch(0.94 0.02 80);
+  --sidebar-primary: oklch(0.78 0.13 82);
+  --sidebar-primary-foreground: oklch(0.14 0.005 60);
+  --sidebar-accent: oklch(0.24 0.008 60);
+  --sidebar-accent-foreground: oklch(0.94 0.02 80);
+  --sidebar-border: oklch(0.3 0.01 70);
+  --sidebar-ring: oklch(0.78 0.13 82);
+  --gold: oklch(0.78 0.13 82);
+  --gold-dim: oklch(0.55 0.09 82);
+  --ivory: oklch(0.94 0.02 80);
+  --ink-black: oklch(0.09 0.003 60);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  h1, h2, h3, .font-display {
+    font-family: 'Cormorant Garamond', 'Cormorant', serif;
+    letter-spacing: 0.01em;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(0,0); }
+  20% { transform: translate(-6px, 3px); }
+  40% { transform: translate(5px, -4px); }
+  60% { transform: translate(-4px, 5px); }
+  80% { transform: translate(3px, -2px); }
+}
+.shake { animation: shake 0.5s ease-in-out; }
+
+@keyframes redflash {
+  0%, 100% { background: transparent; }
+  50% { background: oklch(0.62 0.24 25 / 0.7); box-shadow: 0 0 24px oklch(0.62 0.24 25 / 0.8); }
+}
+.redflash { animation: redflash 0.4s ease-in-out 3; }
+
+@keyframes dissolve {
+  0% { opacity: 1; filter: blur(0); transform: scale(1); }
+  100% { opacity: 0; filter: blur(8px); transform: scale(1.15); }
+}
+.dissolve { animation: dissolve 0.8s forwards; }
+
+@keyframes goldpulse {
+  0%,100% { box-shadow: 0 0 0 0 oklch(0.78 0.13 82 / 0.4); }
+  50% { box-shadow: 0 0 24px 4px oklch(0.78 0.13 82 / 0.5); }
+}
+.gold-pulse { animation: goldpulse 2s ease-in-out infinite; }
+
+/* Chest reveal — rotating gold beams, spin, and reward pop. */
+@keyframes chestspin {
+  0% { transform: rotate(0) scale(1); }
+  20% { transform: rotate(360deg) scale(1.05); }
+  60% { transform: rotate(1080deg) scale(1.15); }
+  100% { transform: rotate(1440deg) scale(1); }
+}
+.chest-spin { animation: chestspin 2s cubic-bezier(0.25, 0.9, 0.35, 1) forwards; }
+
+@keyframes chestpop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35) rotate(-6deg); }
+  60% { transform: scale(0.95) rotate(4deg); }
+  100% { transform: scale(1); }
+}
+.chest-pop { animation: chestpop 0.7s ease-out; }
+
+@keyframes beamspin {
+  0% { transform: translate(-50%, -50%) rotate(0); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.chest-beams {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 260%; height: 260%;
+  transform: translate(-50%, -50%) rotate(0);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    oklch(0.78 0.13 82 / 0.55) 8deg,
+    transparent 22deg,
+    transparent 45deg,
+    oklch(0.78 0.13 82 / 0.4) 53deg,
+    transparent 67deg,
+    transparent 90deg,
+    oklch(0.78 0.13 82 / 0.55) 98deg,
+    transparent 112deg,
+    transparent 135deg,
+    oklch(0.78 0.13 82 / 0.4) 143deg,
+    transparent 157deg,
+    transparent 180deg,
+    oklch(0.78 0.13 82 / 0.55) 188deg,
+    transparent 202deg,
+    transparent 225deg,
+    oklch(0.78 0.13 82 / 0.4) 233deg,
+    transparent 247deg,
+    transparent 270deg,
+    oklch(0.78 0.13 82 / 0.55) 278deg,
+    transparent 292deg,
+    transparent 315deg,
+    oklch(0.78 0.13 82 / 0.4) 323deg,
+    transparent 337deg,
+    transparent 360deg
+  );
+  mask: radial-gradient(circle, transparent 20%, black 40%, transparent 80%);
+  -webkit-mask: radial-gradient(circle, transparent 20%, black 40%, transparent 80%);
+}
+.chest-beams-on {
+  opacity: 1;
+  animation: beamspin 4s linear infinite;
+}
+
+@keyframes coinburst {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 0; }
+}
+.coin-burst { animation: coinburst 1.2s ease-out forwards; }
