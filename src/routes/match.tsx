@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { canStartMatch, getEconomy, payEntry } from "@/game/store";
+import { canStartMatch, getEconomy } from "@/game/store";
 import { sfx } from "@/game/audio";
 import { cancelQueue, findMatch } from "@/game/matchmaking";
 import { PAINTINGS } from "@/game/paintings";
@@ -40,7 +40,6 @@ function MatchmakingPage() {
         doneRef.current = true;
         sfx.snap();
         setPhase("found");
-        payEntry();
         setTimeout(() => {
           nav({
             to: "/play",
@@ -70,7 +69,6 @@ function MatchmakingPage() {
     void cancelQueue();
     sfx.snap();
     setPhase("found");
-    payEntry();
     const painting = PAINTINGS[Math.floor(Math.random() * PAINTINGS.length)].id;
     setTimeout(() => {
       nav({ to: "/play", search: { mode: "bot", painting } });

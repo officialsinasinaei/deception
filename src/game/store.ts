@@ -136,7 +136,7 @@ function mutate(fn: (s: Economy) => void) {
 export function canStartMatch(): boolean {
   load();
   // Gate on ink only so a player who has run out of coins can never be
-  // soft-locked (entry still spends a coin when available — see payEntry).
+  // soft-locked (coins are only deducted on loss — see penaltyLoss).
   return state.ink >= 1;
 }
 
@@ -162,6 +162,7 @@ export function rewardWin() {
 export function penaltyLoss() {
   mutate((s) => {
     s.ink = Math.max(0, s.ink - 1);
+    s.coins = Math.max(0, s.coins - 1);
     if (s.ink < INK_MAX) s.inkLastRegenAt = Date.now();
     s.dailyWins = 0;
   });

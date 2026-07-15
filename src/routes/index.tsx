@@ -66,7 +66,7 @@ function Index() {
           <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold)]/70 mt-1">
             Enter Gallery
           </span>
-          <span className="mt-3 text-[10px] text-muted-foreground">−1 coin · −1 ink on loss</span>
+          <span className="mt-3 text-[10px] text-muted-foreground">+2 ◉ on win · −1 ◉ on loss</span>
         </button>
 
         {!canPlay && (

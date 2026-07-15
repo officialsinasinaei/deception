@@ -56,7 +56,7 @@ function ResultPage() {
           <Stat label="Accuracy" value={`${Math.round(accuracy)}%`} />
           <Stat
             label={outcome === "draw" ? "Result" : outcome === "win" ? "Reward" : "Cost"}
-            value={outcome === "win" ? `+${WIN_COINS} ◉` : outcome === "draw" ? "—" : `−1 ◈`}
+            value={outcome === "win" ? `+${WIN_COINS} ◉` : outcome === "draw" ? "—" : "−1 ◉"}
           />
         </div>
 
