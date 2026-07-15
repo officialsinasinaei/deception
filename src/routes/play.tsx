@@ -114,7 +114,7 @@ function PlayPage() {
           y: spots[i].y,
           rot: 0,
           mirror: false,
-          paint: makePaintLayer(),
+          paint: makePaintLayer(pose),
           found: false,
         }));
         setPlayerFigures(pfs);
@@ -549,7 +549,7 @@ async function deserializeOpponentFigures(blob: SerializedFigure[]): Promise<Fig
   const out: FigureState[] = [];
   for (const s of blob) {
     const pose = POSES.find((p) => p.id === s.poseId) ?? POSES[0];
-    const paint = makePaintLayer();
+    const paint = makePaintLayer(pose);
     // eslint-disable-next-line no-await-in-loop
     await new Promise<void>((resolve) => {
       const img = new Image();
@@ -565,10 +565,20 @@ async function deserializeOpponentFigures(blob: SerializedFigure[]): Promise<Fig
   return out;
 }
 
-function makePaintLayer() {
+function makePaintLayer(pose: FigurePose) {
   const c = document.createElement("canvas");
   c.width = FIGURE_W;
   c.height = FIGURE_H;
+  const ctx = c.getContext("2d")!;
+  // Pre-fill pose shape with the default figure colour so edges are always
+  // clean — eliminates the anti-aliased white fringe between silhouette and paint.
+  ctx.save();
+  ctx.translate(FIGURE_W / 2, FIGURE_H / 2);
+  ctx.clip(posePath2D(pose, FIGURE_W, FIGURE_H));
+  ctx.translate(-FIGURE_W / 2, -FIGURE_H / 2);
+  ctx.fillStyle = "#f2eee5";
+  ctx.fillRect(0, 0, FIGURE_W, FIGURE_H);
+  ctx.restore();
   return c;
 }
 
@@ -583,7 +593,7 @@ function generateBotFigures(bg: HTMLCanvasElement): FigureState[] {
   ];
   const chosen = [...hotspots].sort(() => Math.random() - 0.5).slice(0, 3);
   return POSES.map((pose, i) => {
-    const paint = makePaintLayer();
+    const paint = makePaintLayer(pose);
     // Auto-camouflage: sample background beneath, fill mask with sampled colors mottled
     const spot = chosen[i];
     const bx = spot.x - FIGURE_W / 2;
@@ -781,11 +791,8 @@ function CamouflageView({
       ctx.translate(f.x, f.y);
       ctx.rotate(f.rot);
       if (f.mirror) ctx.scale(-1, 1);
-      // Draw base white silhouette
+      // Draw paint layer (includes pre-filled white base)
       const p = posePath2D(f.pose, FIGURE_W, FIGURE_H);
-      ctx.fillStyle = "#f2eee5";
-      ctx.fill(p);
-      // Draw paint layer over it (paint is already clipped to mask)
       ctx.drawImage(f.paint, -FIGURE_W / 2, -FIGURE_H / 2);
       // Selection outline
       if (i === selected) {
@@ -1255,8 +1262,6 @@ function HuntView({
       ctx.rotate(f.rot);
       if (f.mirror) ctx.scale(-1, 1);
       if (!f.found) {
-        ctx.fillStyle = "#f2eee5";
-        ctx.fill(posePath2D(f.pose, FIGURE_W, FIGURE_H));
         ctx.drawImage(f.paint, -FIGURE_W / 2, -FIGURE_H / 2);
       }
       ctx.restore();
