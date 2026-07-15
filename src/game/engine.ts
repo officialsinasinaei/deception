@@ -44,13 +44,21 @@ export function samplePalette(
   }));
 }
 
-// Load an image with CORS enabled.
+// Load an image. Tries with CORS first (needed for canvas pixel reads);
+// falls back to a plain load if the server doesn't return CORS headers.
 export function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`img load failed: ${src}`));
+    img.onerror = () => {
+      // Retry without CORS — image will still render but canvas pixel
+      // reads (camouflageQuality, hit-testing) will be restricted.
+      const img2 = new Image();
+      img2.onload = () => resolve(img2);
+      img2.onerror = () => reject(new Error(`img load failed: ${src}`));
+      img2.src = src;
+    };
     img.src = src;
   });
 }

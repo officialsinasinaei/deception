@@ -61,6 +61,7 @@ function PlayPage() {
     endedRef.current = ended;
   }, [ended]);
   const [awaitingOpp, setAwaitingOpp] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const paintingRef = useRef<Painting | null>(null);
   const submittedRef = useRef(false);
   const opponentLoadedRef = useRef(false);
@@ -114,6 +115,7 @@ function PlayPage() {
         setPhase("camouflage");
       } catch (e) {
         console.error(e);
+        if (mounted) setLoadError("Failed to load painting. Please try again.");
       }
     })();
     return () => { mounted = false; };
@@ -336,10 +338,24 @@ function PlayPage() {
     return (
       <div className="min-h-[100dvh] bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="font-display text-2xl italic text-[var(--gold)]">Preparing canvas…</div>
-          <div className="mt-2 text-xs text-muted-foreground uppercase tracking-widest">
-            {painting?.title ?? ""}
-          </div>
+          {loadError ? (
+            <>
+              <div className="font-display text-2xl italic text-destructive-foreground">{loadError}</div>
+              <button
+                onClick={() => nav({ to: "/" })}
+                className="mt-4 px-6 py-3 border border-[var(--gold)]/40 text-[var(--gold)]/80 uppercase tracking-widest text-xs"
+              >
+                Return to Gallery
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="font-display text-2xl italic text-[var(--gold)]">Preparing canvas…</div>
+              <div className="mt-2 text-xs text-muted-foreground uppercase tracking-widest">
+                {painting?.title ?? ""}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
