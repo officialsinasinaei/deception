@@ -1406,11 +1406,13 @@ function HuntView({
 }
 
 function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
-  // Test in reverse (top-most first) using the pose path for hit-testing,
-  // so figures are hittable even if the opponent didn't paint them.
+  // Test in reverse (top-most first). Use the figure's pose path for
+  // hit-testing so unpainted figures are still hittable by their silhouette.
+  const pathCache = new Map<FigurePose, Path2D>();
   for (let i = figs.length - 1; i >= 0; i--) {
     const f = figs[i];
     if (f.found) continue;
+    // Undo world → local transform (mirror, rotation, translate-to-center)
     const dx = wx - f.x,
       dy = wy - f.y;
     const cos = Math.cos(-f.rot),
@@ -1418,18 +1420,34 @@ function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
     let lx = dx * cos - dy * sin;
     let ly = dx * sin + dy * cos;
     if (f.mirror) lx = -lx;
-    const px = lx + FIGURE_W / 2;
-    const py = ly + FIGURE_H / 2;
-    if (px < 0 || py < 0 || px >= FIGURE_W || py >= FIGURE_H) continue;
-    const ctx = f.paint.getContext("2d")!;
-    try {
-      const path = posePath2D(f.pose, FIGURE_W, FIGURE_H);
-      if (ctx.isPointInPath(path, px, py)) return i;
-    } catch {
-      /* ignore */
+    // lx, ly are now in the pose-path coordinate space (centred at origin)
+    let path = pathCache.get(f.pose);
+    if (!path) {
+      path = posePath2D(f.pose, FIGURE_W, FIGURE_H);
+      pathCache.set(f.pose, path);
     }
+    // isPointInPath with a Path2D uses the path's own coordinate system
+    if (isPointInPath2D(path, lx, ly)) return i;
   }
   return -1;
+}
+
+// Wrapper so we can test a Path2D without needing a canvas context.
+// Falls back to OffscreenCanvas when available, otherwise creates a throwaway canvas.
+let _hitCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+function isPointInPath2D(path: Path2D, x: number, y: number): boolean {
+  try {
+    if (!_hitCtx) {
+      if (typeof OffscreenCanvas !== "undefined") {
+        _hitCtx = new OffscreenCanvas(1, 1).getContext("2d")!;
+      } else {
+        _hitCtx = document.createElement("canvas").getContext("2d")!;
+      }
+    }
+    return _hitCtx.isPointInPath(path, x, y);
+  } catch {
+    return false;
+  }
 }
 
 function MiniFigure({ fig }: { fig: FigureState }) {
