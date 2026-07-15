@@ -987,11 +987,15 @@ function CamouflageView({
     } else if (ds.mode === "move" && ds.origFig) {
       const dx = w.x - ds.startX,
         dy = w.y - ds.startY;
+      const rawX = ds.origFig!.x + dx;
+      const rawY = ds.origFig!.y + dy;
       setFigures((prev) => {
         const next = prev.slice();
         const f = next[selected];
         if (!f) return prev;
-        next[selected] = { ...f, x: ds.origFig!.x + dx, y: ds.origFig!.y + dy };
+        const clampedX = Math.max(FIGURE_W / 2, Math.min(CW - FIGURE_W / 2, rawX));
+        const clampedY = Math.max(FIGURE_H / 2, Math.min(CH - FIGURE_H / 2, rawY));
+        next[selected] = { ...f, x: clampedX, y: clampedY };
         return next;
       });
     }
