@@ -44,6 +44,8 @@ const CH = 1200; // 3:4 portrait
 
 type Phase = "loading" | "camouflage" | "hunt" | "ended";
 
+const HUNT_DURATION = 180; // seconds
+
 function PlayPage() {
   const nav = useNavigate();
   const search = Route.useSearch();
@@ -52,6 +54,7 @@ function PlayPage() {
   const role = search.role;
   const [phase, setPhase] = useState<Phase>("loading");
   const [timer, setTimer] = useState(60);
+  const [huntTimer, setHuntTimer] = useState(HUNT_DURATION);
   const [painting, setPainting] = useState<Painting | null>(null);
   const [bgCanvas, setBgCanvas] = useState<HTMLCanvasElement | null>(null);
   const [botBgCanvas, setBotBgCanvas] = useState<HTMLCanvasElement | null>(null); // same painting, but we duplicate for isolation
@@ -59,8 +62,8 @@ function PlayPage() {
   const [botFigures, setBotFigures] = useState<FigureState[]>([]);
   const [foundBotCount, setFoundBotCount] = useState(0);
   const [misses, setMisses] = useState(0);
-  const [ended, setEnded] = useState<"win" | "loss" | null>(null);
-  const endedRef = useRef<"win" | "loss" | null>(null);
+  const [ended, setEnded] = useState<"win" | "loss" | "draw" | null>(null);
+  const endedRef = useRef<"win" | "loss" | "draw" | null>(null);
   useEffect(() => {
     endedRef.current = ended;
   }, [ended]);
@@ -218,6 +221,43 @@ function PlayPage() {
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, ended, bgCanvas, isPvP]);
+
+  // Hunt countdown timer (3 minutes)
+  const huntTimerRef = useRef(HUNT_DURATION);
+  useEffect(() => {
+    if (phase !== "hunt" || ended) {
+      setHuntTimer(HUNT_DURATION);
+      huntTimerRef.current = HUNT_DURATION;
+      return;
+    }
+    if (huntTimer <= 0 || ended) return;
+    const t = setTimeout(() => {
+      const next = huntTimer - 1;
+      huntTimerRef.current = next;
+      setHuntTimer(next);
+      if (next <= 0) resolveHunt();
+    }, 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, ended, huntTimer]);
+
+  function resolveHunt() {
+    // Called when the 3-minute hunt timer expires.
+    // Compare findings to decide a draw, win, or loss.
+    if (endedRef.current) return;
+    let myFinds: number;
+    let oppFinds: number;
+    if (isPvP) {
+      myFinds = myFindsRef.current.filter(Boolean).length;
+      oppFinds = (playerFigures ?? []).filter((f) => f.found).length;
+    } else {
+      myFinds = foundBotCount;
+      oppFinds = playerFigures.filter((f) => f.found).length;
+    }
+    if (myFinds > oppFinds) setEnded("win");
+    else if (oppFinds > myFinds) setEnded("loss");
+    else setEnded("draw");
+  }
 
   // ---------- PvP realtime sync ----------
   const myFindsRef = useRef<boolean[]>([false, false, false]);
@@ -428,6 +468,7 @@ function PlayPage() {
       <PhaseBar
         phase={phase}
         timer={timer}
+        huntTimer={huntTimer}
         painting={painting}
         found={foundBotCount}
         onReady={toHunt}
@@ -597,18 +638,22 @@ function averageColor(palette: string[]): string {
 function PhaseBar({
   phase,
   timer,
+  huntTimer,
   painting,
   found,
   onReady,
 }: {
   phase: Phase;
   timer: number;
+  huntTimer: number;
   painting: Painting;
   found: number;
   onReady: () => void;
 }) {
   const eco = useEconomy();
   const av = avatarFor(eco.selectedAvatar);
+  const huntMin = Math.floor(huntTimer / 60);
+  const huntSec = huntTimer % 60;
   return (
     <div className="px-4 py-2 border-b border-[var(--gold)]/20 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2 min-w-0">
@@ -646,16 +691,21 @@ function PhaseBar({
           </button>
         </div>
       ) : (
-        <div className="flex items-center gap-1 shrink-0">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className={`w-2.5 h-2.5 rotate-45 ${i < found ? "bg-[var(--gold)]" : "border border-[var(--gold)]/40"}`}
-            />
-          ))}
-          <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">
-            Found {found}/3
-          </span>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="font-display text-xl text-[var(--gold)] tabular-nums">
+            {String(huntMin).padStart(2, "0")}:{String(huntSec).padStart(2, "0")}
+          </div>
+          <div className="flex items-center gap-1">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rotate-45 ${i < found ? "bg-[var(--gold)]" : "border border-[var(--gold)]/40"}`}
+              />
+            ))}
+            <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              Found {found}/3
+            </span>
+          </div>
         </div>
       )}
     </div>
@@ -1193,13 +1243,16 @@ function HuntView({
     ctx.scale(s, s);
     ctx.translate(-CW / 2, -CH / 2);
     ctx.drawImage(botBg, 0, 0);
-    // Draw bot figures (painted only — not the white silhouette, that's what makes it hard!)
+    // Draw bot figures — base silhouette makes unpainted figures always visible,
+    // paint layer on top provides the camouflage.
     botFigures.forEach((f) => {
       ctx.save();
       ctx.translate(f.x, f.y);
       ctx.rotate(f.rot);
       if (f.mirror) ctx.scale(-1, 1);
       if (!f.found) {
+        ctx.fillStyle = "#f2eee5";
+        ctx.fill(posePath2D(f.pose, FIGURE_W, FIGURE_H));
         ctx.drawImage(f.paint, -FIGURE_W / 2, -FIGURE_H / 2);
       }
       ctx.restore();
