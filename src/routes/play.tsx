@@ -56,6 +56,10 @@ function PlayPage() {
   const [foundBotCount, setFoundBotCount] = useState(0);
   const [misses, setMisses] = useState(0);
   const [ended, setEnded] = useState<"win" | "loss" | null>(null);
+  const endedRef = useRef<"win" | "loss" | null>(null);
+  useEffect(() => {
+    endedRef.current = ended;
+  }, [ended]);
   const [awaitingOpp, setAwaitingOpp] = useState(false);
   const paintingRef = useRef<Painting | null>(null);
   const submittedRef = useRef(false);
@@ -133,7 +137,6 @@ function PlayPage() {
     }
     if (submittedRef.current) return;
     submittedRef.current = true;
-    sfx.ready();
     setAwaitingOpp(true);
     try {
       const serialized: SerializedFigure[] = playerFigures.map((f) => ({
@@ -213,7 +216,7 @@ function PlayPage() {
       const myFindings = (role === "a" ? row.a_findings : row.b_findings) as boolean[] | null;
 
       // Opponent abandoned mid-match → immediate win.
-      if (oppLeft && !ended) {
+      if (oppLeft && !endedRef.current) {
         setEnded("win");
         void setMatchPhase(matchId, "ended").catch(() => {});
         return;
@@ -231,7 +234,7 @@ function PlayPage() {
           if (mutated) {
             sfx.alarm(); triggerShake();
             const foundCount = next.filter((f) => f.found).length;
-            if (foundCount >= 3 && !ended) setEnded("loss");
+            if (foundCount >= 3 && !endedRef.current) setEnded("loss");
           }
           return mutated ? next : prev;
         });
@@ -259,7 +262,7 @@ function PlayPage() {
       }
 
       // If DB says match ended and a winner is known, respect it.
-      if (row.phase === "ended" && row.winner && !ended) {
+      if (row.phase === "ended" && row.winner && !endedRef.current) {
         setEnded(row.winner === row.player_a ? (role === "a" ? "win" : "loss")
                                               : (role === "b" ? "win" : "loss"));
       }
@@ -292,7 +295,7 @@ function PlayPage() {
       cancelled = true;
       window.removeEventListener("beforeunload", onLeave);
       supabase.removeChannel(channel);
-      if (!ended) void markLeft(matchId, role);
+      if (!endedRef.current) void markLeft(matchId, role);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPvP, matchId, role]);
@@ -302,13 +305,15 @@ function PlayPage() {
     if (!ended) return;
     const accuracy = Math.max(0, 100 - misses * 8);
     if (isPvP && matchId && role) {
-      // Broadcast winner to the peer.
+      // Broadcast result to the peer.
       void (async () => {
         try {
           if (ended === "win") {
             const { data } = await supabase.from("matches").select("player_a,player_b").eq("id", matchId).maybeSingle();
             const winner = data ? (role === "a" ? data.player_a : data.player_b) : null;
             if (winner) await supabase.from("matches").update({ winner, phase: "ended" }).eq("id", matchId);
+          } else {
+            await setMatchPhase(matchId, "ended");
           }
         } catch { /* ignore */ }
       })();
@@ -341,6 +346,7 @@ function PlayPage() {
   }
 
   const onFound = (i: number) => {
+    if (isPvP && myFindsRef.current[i]) return; // Already reported
     setBotFigures((prev) => {
       if (!prev[i] || prev[i].found) return prev;
       const next = prev.slice();

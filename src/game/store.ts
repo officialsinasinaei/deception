@@ -160,7 +160,6 @@ export function penaltyLoss() {
     s.ink = Math.max(0, s.ink - 1);
     if (s.ink < INK_MAX) s.inkLastRegenAt = Date.now();
     s.dailyWins = 0;
-    s.dailyWinCycleStart = 0;
   });
 }
 
