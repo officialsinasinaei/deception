@@ -1406,7 +1406,8 @@ function HuntView({
 }
 
 function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
-  // Test in reverse (top-most first) using rotated local coords + mask pixel test.
+  // Test in reverse (top-most first) using the pose path for hit-testing,
+  // so figures are hittable even if the opponent didn't paint them.
   for (let i = figs.length - 1; i >= 0; i--) {
     const f = figs[i];
     if (f.found) continue;
@@ -1422,10 +1423,10 @@ function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
     if (px < 0 || py < 0 || px >= FIGURE_W || py >= FIGURE_H) continue;
     const ctx = f.paint.getContext("2d")!;
     try {
-      const d = ctx.getImageData(Math.floor(px), Math.floor(py), 1, 1).data;
-      if (d[3] > 32) return i;
+      const path = posePath2D(f.pose, FIGURE_W, FIGURE_H);
+      if (ctx.isPointInPath(path, px, py)) return i;
     } catch {
-      /* CORS or bounds */
+      /* ignore */
     }
   }
   return -1;
