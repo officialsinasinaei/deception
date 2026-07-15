@@ -72,7 +72,7 @@
   --card-foreground: oklch(0.94 0.02 80);
   --popover: oklch(0.18 0.006 60);
   --popover-foreground: oklch(0.94 0.02 80);
-  --primary: oklch(0.78 0.13 82);          /* gold */
+  --primary: oklch(0.78 0.13 82); /* gold */
   --primary-foreground: oklch(0.14 0.005 60);
   --secondary: oklch(0.24 0.008 60);
   --secondary-foreground: oklch(0.94 0.02 80);
@@ -147,68 +147,135 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
-  h1, h2, h3, .font-display {
-    font-family: 'Cormorant Garamond', 'Cormorant', serif;
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: "Cormorant Garamond", "Cormorant", serif;
     letter-spacing: 0.01em;
   }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translate(0,0); }
-  20% { transform: translate(-6px, 3px); }
-  40% { transform: translate(5px, -4px); }
-  60% { transform: translate(-4px, 5px); }
-  80% { transform: translate(3px, -2px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-6px, 3px);
+  }
+  40% {
+    transform: translate(5px, -4px);
+  }
+  60% {
+    transform: translate(-4px, 5px);
+  }
+  80% {
+    transform: translate(3px, -2px);
+  }
 }
-.shake { animation: shake 0.5s ease-in-out; }
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
 
 @keyframes redflash {
-  0%, 100% { background: transparent; }
-  50% { background: oklch(0.62 0.24 25 / 0.7); box-shadow: 0 0 24px oklch(0.62 0.24 25 / 0.8); }
+  0%,
+  100% {
+    background: transparent;
+  }
+  50% {
+    background: oklch(0.62 0.24 25 / 0.7);
+    box-shadow: 0 0 24px oklch(0.62 0.24 25 / 0.8);
+  }
 }
-.redflash { animation: redflash 0.4s ease-in-out 3; }
+.redflash {
+  animation: redflash 0.4s ease-in-out 3;
+}
 
 @keyframes dissolve {
-  0% { opacity: 1; filter: blur(0); transform: scale(1); }
-  100% { opacity: 0; filter: blur(8px); transform: scale(1.15); }
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(1.15);
+  }
 }
-.dissolve { animation: dissolve 0.8s forwards; }
+.dissolve {
+  animation: dissolve 0.8s forwards;
+}
 
 @keyframes goldpulse {
-  0%,100% { box-shadow: 0 0 0 0 oklch(0.78 0.13 82 / 0.4); }
-  50% { box-shadow: 0 0 24px 4px oklch(0.78 0.13 82 / 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.78 0.13 82 / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 24px 4px oklch(0.78 0.13 82 / 0.5);
+  }
 }
-.gold-pulse { animation: goldpulse 2s ease-in-out infinite; }
+.gold-pulse {
+  animation: goldpulse 2s ease-in-out infinite;
+}
 
 /* Chest reveal — rotating gold beams, spin, and reward pop. */
 @keyframes chestspin {
-  0% { transform: rotate(0) scale(1); }
-  20% { transform: rotate(360deg) scale(1.05); }
-  60% { transform: rotate(1080deg) scale(1.15); }
-  100% { transform: rotate(1440deg) scale(1); }
+  0% {
+    transform: rotate(0) scale(1);
+  }
+  20% {
+    transform: rotate(360deg) scale(1.05);
+  }
+  60% {
+    transform: rotate(1080deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(1440deg) scale(1);
+  }
 }
-.chest-spin { animation: chestspin 2s cubic-bezier(0.25, 0.9, 0.35, 1) forwards; }
+.chest-spin {
+  animation: chestspin 2s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+}
 
 @keyframes chestpop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35) rotate(-6deg); }
-  60% { transform: scale(0.95) rotate(4deg); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35) rotate(-6deg);
+  }
+  60% {
+    transform: scale(0.95) rotate(4deg);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-.chest-pop { animation: chestpop 0.7s ease-out; }
+.chest-pop {
+  animation: chestpop 0.7s ease-out;
+}
 
 @keyframes beamspin {
-  0% { transform: translate(-50%, -50%) rotate(0); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0% {
+    transform: translate(-50%, -50%) rotate(0);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 .chest-beams {
   position: absolute;
-  top: 50%; left: 50%;
-  width: 260%; height: 260%;
+  top: 50%;
+  left: 50%;
+  width: 260%;
+  height: 260%;
   transform: translate(-50%, -50%) rotate(0);
   pointer-events: none;
   opacity: 0;
@@ -250,8 +317,18 @@
 }
 
 @keyframes coinburst {
-  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
-  20% { opacity: 1; }
-  100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx, 0), var(--ty, 0)) scale(1);
+    opacity: 0;
+  }
 }
-.coin-burst { animation: coinburst 1.2s ease-out forwards; }
+.coin-burst {
+  animation: coinburst 1.2s ease-out forwards;
+}

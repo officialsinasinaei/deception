@@ -15,20 +15,32 @@ const MUTE_KEY = "cod:muted:v1";
 let muted = false;
 const muteListeners = new Set<() => void>();
 if (typeof window !== "undefined") {
-  try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
+  try {
+    muted = localStorage.getItem(MUTE_KEY) === "1";
+  } catch {}
 }
 function applyMute() {
   if (masterGain) masterGain.gain.value = muted ? 0 : 0.9;
 }
-export function isMuted() { return muted; }
+export function isMuted() {
+  return muted;
+}
 export function setMuted(v: boolean) {
   muted = v;
-  try { localStorage.setItem(MUTE_KEY, v ? "1" : "0"); } catch {}
+  try {
+    localStorage.setItem(MUTE_KEY, v ? "1" : "0");
+  } catch {}
   applyMute();
   muteListeners.forEach((l) => l());
 }
-export function toggleMuted() { setMuted(!muted); return muted; }
-export function subscribeMuted(l: () => void) { muteListeners.add(l); return () => muteListeners.delete(l); }
+export function toggleMuted() {
+  setMuted(!muted);
+  return muted;
+}
+export function subscribeMuted(l: () => void) {
+  muteListeners.add(l);
+  return () => muteListeners.delete(l);
+}
 
 function ac(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -89,11 +101,11 @@ interface ToneOpts {
   delay?: number;
   attack?: number;
   release?: number;
-  reverb?: number;      // 0..1 send
+  reverb?: number; // 0..1 send
   bus?: GainNode | null;
   detune?: number;
   vibrato?: { rateHz: number; depthCents: number };
-  filterHz?: number;    // low-pass cutoff
+  filterHz?: number; // low-pass cutoff
   filterQ?: number;
 }
 
@@ -101,10 +113,17 @@ function tone(freq: number, dur: number, opts: ToneOpts = {}) {
   const a = ac();
   if (!a) return;
   const {
-    type = "sine", gain = 0.15, delay = 0,
-    attack = 0.008, release = dur,
-    reverb: rvb = 0.15, bus = sfxBus, detune = 0,
-    vibrato, filterHz, filterQ = 0.7,
+    type = "sine",
+    gain = 0.15,
+    delay = 0,
+    attack = 0.008,
+    release = dur,
+    reverb: rvb = 0.15,
+    bus = sfxBus,
+    detune = 0,
+    vibrato,
+    filterHz,
+    filterQ = 0.7,
   } = opts;
   const t0 = a.currentTime + delay;
   const o = a.createOscillator();
@@ -231,7 +250,14 @@ function cello(freq: number, dur: number, delay = 0, gain = 0.14, detuneOff = 0)
   lfo.stop(t0 + dur + 0.1);
 }
 
-function noise(dur: number, gain = 0.15, delay = 0, filterHz = 2000, type: BiquadFilterType = "bandpass", q = 1) {
+function noise(
+  dur: number,
+  gain = 0.15,
+  delay = 0,
+  filterHz = 2000,
+  type: BiquadFilterType = "bandpass",
+  q = 1,
+) {
   const a = ac();
   if (!a || !sfxBus) return;
   const t0 = a.currentTime + delay;
@@ -256,8 +282,19 @@ function noise(dur: number, gain = 0.15, delay = 0, filterHz = 2000, type: Biqua
 // D minor — solemn baroque key.
 const NOTE = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
 // MIDI helpers
-const D4 = 62, A4 = 69, D5 = 74, F5 = 77, A5 = 81, C5 = 72, E5 = 76, G5 = 79;
-const D3 = 50, A3 = 57, F3 = 53, G3 = 55, E3 = 52;
+const D4 = 62,
+  A4 = 69,
+  D5 = 74,
+  F5 = 77,
+  A5 = 81,
+  C5 = 72,
+  E5 = 76,
+  G5 = 79;
+const D3 = 50,
+  A3 = 57,
+  F3 = 53,
+  G3 = 55,
+  E3 = 52;
 
 export const sfx = {
   click: () => {
@@ -286,15 +323,36 @@ export const sfx = {
   alarm: () => {
     // Brass-like, dissonant tritone pulse.
     for (let i = 0; i < 3; i++) {
-      tone(NOTE(A4), 0.18, { type: "sawtooth", gain: 0.16, delay: i * 0.14, filterHz: 2200, filterQ: 2, reverb: 0.15 });
-      tone(NOTE(D5) * Math.pow(2, 1 / 12) /* Eb */, 0.18, { type: "sawtooth", gain: 0.14, delay: i * 0.14 + 0.01, filterHz: 2200, filterQ: 2, reverb: 0.15 });
+      tone(NOTE(A4), 0.18, {
+        type: "sawtooth",
+        gain: 0.16,
+        delay: i * 0.14,
+        filterHz: 2200,
+        filterQ: 2,
+        reverb: 0.15,
+      });
+      tone(NOTE(D5) * Math.pow(2, 1 / 12) /* Eb */, 0.18, {
+        type: "sawtooth",
+        gain: 0.14,
+        delay: i * 0.14 + 0.01,
+        filterHz: 2200,
+        filterQ: 2,
+        reverb: 0.15,
+      });
     }
   },
   shatter: () => {
     noise(0.5, 0.22, 0, 6500, "highpass", 0.4);
     // Glass chimes cascade.
     [2400, 3100, 3900, 4700, 5600].forEach((f, i) =>
-      tone(f, 0.35, { type: "triangle", gain: 0.08, delay: i * 0.035, reverb: 0.5, attack: 0.002, release: 0.35 })
+      tone(f, 0.35, {
+        type: "triangle",
+        gain: 0.08,
+        delay: i * 0.035,
+        reverb: 0.5,
+        attack: 0.002,
+        release: 0.35,
+      }),
     );
     tone(160, 0.15, { type: "sine", gain: 0.14 });
   },
@@ -304,9 +362,15 @@ export const sfx = {
     const t = 0;
     const beat = 0.28;
     const mel = [
-      { n: D5, d: 1 }, { n: F5, d: 1 }, { n: A5, d: 2 },
-      { n: G5, d: 1 }, { n: F5, d: 1 }, { n: E5, d: 1 }, { n: D5, d: 2 },
-      { n: A4, d: 1 }, { n: D5, d: 3 },
+      { n: D5, d: 1 },
+      { n: F5, d: 1 },
+      { n: A5, d: 2 },
+      { n: G5, d: 1 },
+      { n: F5, d: 1 },
+      { n: E5, d: 1 },
+      { n: D5, d: 2 },
+      { n: A4, d: 1 },
+      { n: D5, d: 3 },
     ];
     let cursor = t;
     mel.forEach(({ n, d }) => {
@@ -315,7 +379,9 @@ export const sfx = {
     });
     // Bass line
     const bass = [
-      { n: D3, d: 4 }, { n: A3, d: 3 }, { n: D3, d: 6 },
+      { n: D3, d: 4 },
+      { n: A3, d: 3 },
+      { n: D3, d: 6 },
     ];
     cursor = t;
     bass.forEach(({ n, d }) => {
@@ -325,8 +391,13 @@ export const sfx = {
     // Sustained chord pad on final beat.
     [D4, NOTE(66) /* F# = Picardy */, A4, D5].forEach((f, i) =>
       tone(typeof f === "number" && f > 200 ? f : NOTE(f), 1.6, {
-        type: "triangle", gain: 0.06, delay: 10 * beat, reverb: 0.7, attack: 0.4, release: 1.6,
-      })
+        type: "triangle",
+        gain: 0.06,
+        delay: 10 * beat,
+        reverb: 0.7,
+        attack: 0.4,
+        release: 1.6,
+      }),
     );
   },
   defeat: () => {
@@ -347,11 +418,16 @@ export const sfx = {
   },
   chest: () => {
     // Rising baroque arpeggio + shimmer.
-    [D5, F5, A5, D5 + 12].forEach((n, i) =>
-      pluck(NOTE(n), 0.6, i * 0.07, 0.18, 0.6)
-    );
+    [D5, F5, A5, D5 + 12].forEach((n, i) => pluck(NOTE(n), 0.6, i * 0.07, 0.18, 0.6));
     [C5 + 12, E5 + 12, G5 + 12].forEach((n, i) =>
-      tone(NOTE(n), 0.9, { type: "triangle", gain: 0.08, delay: 0.3 + i * 0.06, reverb: 0.7, attack: 0.002, release: 0.9 })
+      tone(NOTE(n), 0.9, {
+        type: "triangle",
+        gain: 0.08,
+        delay: 0.3 + i * 0.06,
+        reverb: 0.7,
+        attack: 0.002,
+        release: 0.9,
+      }),
     );
     noise(0.5, 0.06, 0, 8000, "highpass", 0.3);
   },
@@ -375,10 +451,10 @@ const music: MusicState = { running: false, next: 0, step: 0, timer: null };
 
 // MIDI chord progression: i - VII - VI - V (Dm - C - Bb - A)
 const CHORDS: number[][] = [
-  [50, 53, 57, 62, 65],           // Dm
-  [48, 52, 55, 60, 64],           // C
-  [46, 50, 53, 58, 62],           // Bb
-  [45, 49, 52, 57, 61],           // A (major, dominant)
+  [50, 53, 57, 62, 65], // Dm
+  [48, 52, 55, 60, 64], // C
+  [46, 50, 53, 58, 62], // Bb
+  [45, 49, 52, 57, 61], // A (major, dominant)
 ];
 // Arpeggio patterns (indexes into chord tones)
 const PATTERN = [0, 2, 3, 2, 1, 2, 3, 4];
@@ -396,11 +472,23 @@ function scheduleBar(a: AudioContext, when: number, chord: number[]) {
   });
   // Occasional flute-like top note
   if (Math.random() < 0.6) {
-    scheduleMusicTone(a, NOTE(chord[2] + 24), 1.2, when + beat * (2 + Math.random() * 4) - a.currentTime, 0.05);
+    scheduleMusicTone(
+      a,
+      NOTE(chord[2] + 24),
+      1.2,
+      when + beat * (2 + Math.random() * 4) - a.currentTime,
+      0.05,
+    );
   }
 }
 
-function scheduleMusicPluck(a: AudioContext, freq: number, dur: number, delay: number, gain: number) {
+function scheduleMusicPluck(
+  a: AudioContext,
+  freq: number,
+  dur: number,
+  delay: number,
+  gain: number,
+) {
   if (!musicBus) return;
   const t0 = a.currentTime + Math.max(0, delay);
   const g = a.createGain();
@@ -429,7 +517,13 @@ function scheduleMusicPluck(a: AudioContext, freq: number, dur: number, delay: n
   }
 }
 
-function scheduleMusicTone(a: AudioContext, freq: number, dur: number, delay: number, gain: number) {
+function scheduleMusicTone(
+  a: AudioContext,
+  freq: number,
+  dur: number,
+  delay: number,
+  gain: number,
+) {
   if (!musicBus) return;
   const t0 = a.currentTime + Math.max(0, delay);
   const o = a.createOscillator();
@@ -478,7 +572,9 @@ export function stopMusic() {
     musicBus.gain.cancelScheduledValues(t);
     musicBus.gain.setValueAtTime(musicBus.gain.value, t);
     musicBus.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
-    setTimeout(() => { if (musicBus) musicBus.gain.value = 0.28; }, 500);
+    setTimeout(() => {
+      if (musicBus) musicBus.gain.value = 0.28;
+    }, 500);
   }
 }
 

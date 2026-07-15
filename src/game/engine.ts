@@ -1,6 +1,10 @@
 // Canvas engine helpers: palette extraction, mask ops.
 
-export interface RGB { r: number; g: number; b: number; }
+export interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
 
 export function rgbToHex({ r, g, b }: RGB): string {
   const h = (n: number) => n.toString(16).padStart(2, "0");
@@ -10,12 +14,16 @@ export function rgbToHex({ r, g, b }: RGB): string {
 // Sample background pixels beneath a box and return N dominant colors (simple bucketing).
 export function samplePalette(
   bgCanvas: HTMLCanvasElement | OffscreenCanvas,
-  x: number, y: number, w: number, h: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   count = 5,
 ): string[] {
   const ctx = (bgCanvas as HTMLCanvasElement).getContext("2d");
   if (!ctx) return ["#888888"];
-  const cw = bgCanvas.width, ch = bgCanvas.height;
+  const cw = bgCanvas.width,
+    ch = bgCanvas.height;
   const sx = Math.max(0, Math.floor(x));
   const sy = Math.max(0, Math.floor(y));
   const sw = Math.min(cw - sx, Math.floor(w));
@@ -29,19 +37,28 @@ export function samplePalette(
   }
   // Bucket to 4bit per channel
   const buckets = new Map<number, { r: number; g: number; b: number; n: number }>();
-  for (let i = 0; i < data.length; i += 16) { // stride 4 pixels
-    const r = data[i], g = data[i + 1], b = data[i + 2];
+  for (let i = 0; i < data.length; i += 16) {
+    // stride 4 pixels
+    const r = data[i],
+      g = data[i + 1],
+      b = data[i + 2];
     const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
     const e = buckets.get(key);
-    if (e) { e.r += r; e.g += g; e.b += b; e.n++; }
-    else buckets.set(key, { r, g, b, n: 1 });
+    if (e) {
+      e.r += r;
+      e.g += g;
+      e.b += b;
+      e.n++;
+    } else buckets.set(key, { r, g, b, n: 1 });
   }
   const arr = [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, count);
-  return arr.map((e) => rgbToHex({
-    r: Math.round(e.r / e.n),
-    g: Math.round(e.g / e.n),
-    b: Math.round(e.b / e.n),
-  }));
+  return arr.map((e) =>
+    rgbToHex({
+      r: Math.round(e.r / e.n),
+      g: Math.round(e.g / e.n),
+      b: Math.round(e.b / e.n),
+    }),
+  );
 }
 
 // Load an image. Tries with CORS first (needed for canvas pixel reads);
@@ -74,7 +91,8 @@ export function camouflageQuality(
   const bgCtx = bg.getContext("2d");
   const pCtx = paint.getContext("2d");
   if (!bgCtx || !pCtx) return 0;
-  const w = paint.width, h = paint.height;
+  const w = paint.width,
+    h = paint.height;
   const sx = Math.max(0, Math.floor(offsetX));
   const sy = Math.max(0, Math.floor(offsetY));
   const sw = Math.min(bg.width - sx, w);
@@ -84,8 +102,11 @@ export function camouflageQuality(
   try {
     bgData = bgCtx.getImageData(sx, sy, sw, sh).data;
     pData = pCtx.getImageData(0, 0, sw, sh).data;
-  } catch { return 0; }
-  let total = 0, count = 0;
+  } catch {
+    return 0;
+  }
+  let total = 0,
+    count = 0;
   for (let i = 0; i < pData.length; i += 16) {
     const a = pData[i + 3];
     if (a < 32) continue;
@@ -98,7 +119,8 @@ export function camouflageQuality(
   if (count === 0) return 0;
   const avg = total / count; // 0..441
   // Coverage — how much of the figure was painted
-  let painted = 0, opaque = 0;
+  let painted = 0,
+    opaque = 0;
   for (let i = 3; i < pData.length; i += 4) {
     if (pData[i] > 200) painted++;
     opaque++;

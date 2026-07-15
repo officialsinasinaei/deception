@@ -9,7 +9,10 @@ import { avatarFor } from "@/game/avatars";
 import { useEconomy } from "@/game/store";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  markFinding, markLeft, setPhase as setMatchPhase, submitReady,
+  markFinding,
+  markLeft,
+  setPhase as setMatchPhase,
+  submitReady,
   type SerializedFigure,
 } from "@/game/matchmaking";
 
@@ -27,11 +30,12 @@ export const Route = createFileRoute("/play")({
 
 interface FigureState {
   pose: FigurePose;
-  x: number; y: number;   // center on canvas
-  rot: number;             // radians
+  x: number;
+  y: number; // center on canvas
+  rot: number; // radians
   mirror: boolean;
   paint: HTMLCanvasElement; // offscreen paint layer, size FIGURE_W x FIGURE_H
-  found: boolean;          // player-side: bot has found this figure
+  found: boolean; // player-side: bot has found this figure
 }
 
 // Canvas dimensions — the "master painting" logical size.
@@ -71,24 +75,26 @@ function PlayPage() {
     let mounted = true;
     (async () => {
       const p =
-        (search.painting && PAINTINGS.find((x) => x.id === search.painting)) ||
-        randomPainting();
+        (search.painting && PAINTINGS.find((x) => x.id === search.painting)) || randomPainting();
       paintingRef.current = p;
       setPainting(p);
       try {
         const img = await loadImage(p.url);
         if (!mounted) return;
         const bg = document.createElement("canvas");
-        bg.width = CW; bg.height = CH;
+        bg.width = CW;
+        bg.height = CH;
         const ctx = bg.getContext("2d")!;
         // cover fit
         const scale = Math.max(CW / img.width, CH / img.height);
-        const dw = img.width * scale, dh = img.height * scale;
+        const dw = img.width * scale,
+          dh = img.height * scale;
         ctx.fillStyle = "#111";
         ctx.fillRect(0, 0, CW, CH);
         ctx.drawImage(img, (CW - dw) / 2, (CH - dh) / 2, dw, dh);
         const botBg = document.createElement("canvas");
-        botBg.width = CW; botBg.height = CH;
+        botBg.width = CW;
+        botBg.height = CH;
         botBg.getContext("2d")!.drawImage(bg, 0, 0);
         setBgCanvas(bg);
         setBotBgCanvas(botBg);
@@ -100,8 +106,13 @@ function PlayPage() {
           { x: CW * 0.4, y: CH * 0.75 },
         ];
         const pfs: FigureState[] = POSES.map((pose, i) => ({
-          pose, x: spots[i].x, y: spots[i].y, rot: 0, mirror: false,
-          paint: makePaintLayer(), found: false,
+          pose,
+          x: spots[i].x,
+          y: spots[i].y,
+          rot: 0,
+          mirror: false,
+          paint: makePaintLayer(),
+          found: false,
         }));
         setPlayerFigures(pfs);
 
@@ -118,14 +129,19 @@ function PlayPage() {
         if (mounted) setLoadError("Failed to load painting. Please try again.");
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Camouflage countdown
   useEffect(() => {
     if (phase !== "camouflage") return;
-    if (timer <= 0) { toHunt(); return; }
+    if (timer <= 0) {
+      toHunt();
+      return;
+    }
     const t = setTimeout(() => setTimer((v) => v - 1), 1000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,7 +159,10 @@ function PlayPage() {
     try {
       const serialized: SerializedFigure[] = playerFigures.map((f) => ({
         poseId: f.pose.id,
-        x: f.x, y: f.y, rot: f.rot, mirror: f.mirror,
+        x: f.x,
+        y: f.y,
+        rot: f.rot,
+        mirror: f.mirror,
         paint: f.paint.toDataURL("image/png"),
       }));
       await submitReady(matchId!, role!, serialized);
@@ -168,10 +187,7 @@ function PlayPage() {
     let sumQ = 0;
     if (bgCanvas) {
       playerFigures.forEach((f) => {
-        sumQ += camouflageQuality(
-          bgCanvas, f.paint,
-          f.x - FIGURE_W / 2, f.y - FIGURE_H / 2,
-        );
+        sumQ += camouflageQuality(bgCanvas, f.paint, f.x - FIGURE_W / 2, f.y - FIGURE_H / 2);
       });
     }
     const avgQ = sumQ / Math.max(1, playerFigures.length);
@@ -230,11 +246,15 @@ function PlayPage() {
           if (!prev.length) return prev;
           let mutated = false;
           const next = prev.map((f, i) => {
-            if (oppFindings[i] && !f.found) { mutated = true; return { ...f, found: true }; }
+            if (oppFindings[i] && !f.found) {
+              mutated = true;
+              return { ...f, found: true };
+            }
             return f;
           });
           if (mutated) {
-            sfx.alarm(); triggerShake();
+            sfx.alarm();
+            triggerShake();
             const foundCount = next.filter((f) => f.found).length;
             if (foundCount >= 3 && !endedRef.current) setEnded("loss");
           }
@@ -265,18 +285,21 @@ function PlayPage() {
 
       // If DB says match ended and a winner is known, respect it.
       if (row.phase === "ended" && row.winner && !endedRef.current) {
-        setEnded(row.winner === row.player_a ? (role === "a" ? "win" : "loss")
-                                              : (role === "b" ? "win" : "loss"));
+        setEnded(
+          row.winner === row.player_a
+            ? role === "a"
+              ? "win"
+              : "loss"
+            : role === "b"
+              ? "win"
+              : "loss",
+        );
       }
     };
 
     // Initial fetch
     (async () => {
-      const { data } = await supabase
-        .from("matches")
-        .select("*")
-        .eq("id", matchId)
-        .maybeSingle();
+      const { data } = await supabase.from("matches").select("*").eq("id", matchId).maybeSingle();
       if (data) applyRow(data as unknown as MatchRow);
     })();
 
@@ -290,7 +313,9 @@ function PlayPage() {
       .subscribe();
 
     // Announce leave on unload / navigation
-    const onLeave = () => { void markLeft(matchId, role); };
+    const onLeave = () => {
+      void markLeft(matchId, role);
+    };
     window.addEventListener("beforeunload", onLeave);
 
     return () => {
@@ -311,13 +336,20 @@ function PlayPage() {
       void (async () => {
         try {
           if (ended === "win") {
-            const { data } = await supabase.from("matches").select("player_a,player_b").eq("id", matchId).maybeSingle();
+            const { data } = await supabase
+              .from("matches")
+              .select("player_a,player_b")
+              .eq("id", matchId)
+              .maybeSingle();
             const winner = data ? (role === "a" ? data.player_a : data.player_b) : null;
-            if (winner) await supabase.from("matches").update({ winner, phase: "ended" }).eq("id", matchId);
+            if (winner)
+              await supabase.from("matches").update({ winner, phase: "ended" }).eq("id", matchId);
           } else {
             await setMatchPhase(matchId, "ended");
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       })();
     }
     const t = setTimeout(() => {
@@ -340,7 +372,9 @@ function PlayPage() {
         <div className="text-center">
           {loadError ? (
             <>
-              <div className="font-display text-2xl italic text-destructive-foreground">{loadError}</div>
+              <div className="font-display text-2xl italic text-destructive-foreground">
+                {loadError}
+              </div>
               <button
                 onClick={() => nav({ to: "/" })}
                 className="mt-4 px-6 py-3 border border-[var(--gold)]/40 text-[var(--gold)]/80 uppercase tracking-widest text-xs"
@@ -350,7 +384,9 @@ function PlayPage() {
             </>
           ) : (
             <>
-              <div className="font-display text-2xl italic text-[var(--gold)]">Preparing canvas…</div>
+              <div className="font-display text-2xl italic text-[var(--gold)]">
+                Preparing canvas…
+              </div>
               <div className="mt-2 text-xs text-muted-foreground uppercase tracking-widest">
                 {painting?.title ?? ""}
               </div>
@@ -385,17 +421,21 @@ function PlayPage() {
     <div
       className="min-h-[100dvh] bg-background text-foreground flex flex-col"
       style={shaking ? { animation: "shake 0.5s" } : undefined}
-      onAnimationEnd={(e) => { if (e.target === e.currentTarget) setShaking(false); }}
+      onAnimationEnd={(e) => {
+        if (e.target === e.currentTarget) setShaking(false);
+      }}
     >
-      <PhaseBar phase={phase} timer={timer} painting={painting} found={foundBotCount} onReady={toHunt} />
+      <PhaseBar
+        phase={phase}
+        timer={timer}
+        painting={painting}
+        found={foundBotCount}
+        onReady={toHunt}
+      />
 
       <div className="flex-1 flex flex-col min-h-0">
         {phase === "camouflage" ? (
-          <CamouflageView
-            bg={bgCanvas!}
-            figures={playerFigures}
-            setFigures={setPlayerFigures}
-          />
+          <CamouflageView bg={bgCanvas!} figures={playerFigures} setFigures={setPlayerFigures} />
         ) : (
           <HuntView
             botBg={botBgCanvas!}
@@ -414,8 +454,12 @@ function PlayPage() {
       {awaitingOpp && phase === "camouflage" && (
         <div className="absolute inset-0 bg-background/85 backdrop-blur-sm grid place-items-center">
           <div className="text-center">
-            <div className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)]/70">Ready</div>
-            <div className="font-display text-3xl italic mt-2 text-[var(--ivory)]">Awaiting rival…</div>
+            <div className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)]/70">
+              Ready
+            </div>
+            <div className="font-display text-3xl italic mt-2 text-[var(--ivory)]">
+              Awaiting rival…
+            </div>
             <div className="mt-4 w-8 h-8 mx-auto rounded-full border border-[var(--gold)]/60 border-t-transparent animate-spin" />
           </div>
         </div>
@@ -424,8 +468,12 @@ function PlayPage() {
       {ended && (
         <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center">
           <div className="text-center">
-            <div className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)]/70">Match Ended</div>
-            <div className={`font-display text-5xl italic mt-2 ${ended === "win" ? "text-[var(--gold)]" : "text-destructive-foreground/70"}`}>
+            <div className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)]/70">
+              Match Ended
+            </div>
+            <div
+              className={`font-display text-5xl italic mt-2 ${ended === "win" ? "text-[var(--gold)]" : "text-destructive-foreground/70"}`}
+            >
               {ended === "win" ? "Victoria" : "Sconfitta"}
             </div>
           </div>
@@ -439,14 +487,20 @@ function PlayPage() {
 
 interface MatchRow {
   id: string;
-  player_a: string; player_b: string;
-  avatar_a: number; avatar_b: number;
+  player_a: string;
+  player_b: string;
+  avatar_a: number;
+  avatar_b: number;
   painting_id: string;
   phase: "camouflage" | "hunt" | "ended";
-  a_figures: unknown; b_figures: unknown;
-  a_findings: unknown; b_findings: unknown;
-  a_ready: boolean; b_ready: boolean;
-  a_left: boolean; b_left: boolean;
+  a_figures: unknown;
+  b_figures: unknown;
+  a_findings: unknown;
+  b_findings: unknown;
+  a_ready: boolean;
+  b_ready: boolean;
+  a_left: boolean;
+  b_left: boolean;
   winner: string | null;
 }
 
@@ -458,7 +512,10 @@ async function deserializeOpponentFigures(blob: SerializedFigure[]): Promise<Fig
     // eslint-disable-next-line no-await-in-loop
     await new Promise<void>((resolve) => {
       const img = new Image();
-      img.onload = () => { paint.getContext("2d")!.drawImage(img, 0, 0); resolve(); };
+      img.onload = () => {
+        paint.getContext("2d")!.drawImage(img, 0, 0);
+        resolve();
+      };
       img.onerror = () => resolve();
       img.src = s.paint;
     });
@@ -469,7 +526,8 @@ async function deserializeOpponentFigures(blob: SerializedFigure[]): Promise<Fig
 
 function makePaintLayer() {
   const c = document.createElement("canvas");
-  c.width = FIGURE_W; c.height = FIGURE_H;
+  c.width = FIGURE_W;
+  c.height = FIGURE_H;
   return c;
 }
 
@@ -503,17 +561,23 @@ function generateBotFigures(bg: HTMLCanvasElement): FigureState[] {
     ctx.fillRect(0, 0, FIGURE_W, FIGURE_H);
     ctx.restore();
     return {
-      pose, x: spot.x, y: spot.y,
+      pose,
+      x: spot.x,
+      y: spot.y,
       rot: (Math.random() - 0.5) * 0.3,
       mirror: Math.random() < 0.5,
-      paint, found: false,
+      paint,
+      found: false,
     };
   });
 }
 
 function averageColor(palette: string[]): string {
   if (palette.length === 0) return "#8a7a5c";
-  let r = 0, g = 0, b = 0, n = 0;
+  let r = 0,
+    g = 0,
+    b = 0,
+    n = 0;
   for (const hex of palette) {
     const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
     if (!m) continue;
@@ -523,12 +587,25 @@ function averageColor(palette: string[]): string {
     n++;
   }
   if (!n) return palette[0];
-  const to = (v: number) => Math.round(v / n).toString(16).padStart(2, "0");
+  const to = (v: number) =>
+    Math.round(v / n)
+      .toString(16)
+      .padStart(2, "0");
   return `#${to(r)}${to(g)}${to(b)}`;
 }
 
-function PhaseBar({ phase, timer, painting, found, onReady }: {
-  phase: Phase; timer: number; painting: Painting; found: number; onReady: () => void;
+function PhaseBar({
+  phase,
+  timer,
+  painting,
+  found,
+  onReady,
+}: {
+  phase: Phase;
+  timer: number;
+  painting: Painting;
+  found: number;
+  onReady: () => void;
 }) {
   const eco = useEconomy();
   const av = avatarFor(eco.selectedAvatar);
@@ -537,30 +614,48 @@ function PhaseBar({ phase, timer, painting, found, onReady }: {
       <div className="flex items-center gap-2 min-w-0">
         {av && (
           <div className="w-8 h-8 rounded-full border border-[var(--gold)]/60 overflow-hidden shrink-0">
-            <img src={av.url} alt={av.name} className="w-full h-full object-cover" width={64} height={64} />
+            <img
+              src={av.url}
+              alt={av.name}
+              className="w-full h-full object-cover"
+              width={64}
+              height={64}
+            />
           </div>
         )}
         <div className="min-w-0">
-        <div className="text-[9px] uppercase tracking-[0.3em] text-[var(--gold)]/70">
-          {phase === "camouflage" ? "Camouflage" : "The Hunt"}
-        </div>
-        <div className="text-xs text-muted-foreground truncate italic">{painting.title}</div>
+          <div className="text-[9px] uppercase tracking-[0.3em] text-[var(--gold)]/70">
+            {phase === "camouflage" ? "Camouflage" : "The Hunt"}
+          </div>
+          <div className="text-xs text-muted-foreground truncate italic">{painting.title}</div>
         </div>
       </div>
       {phase === "camouflage" ? (
         <div className="flex items-center gap-2 shrink-0">
-          <div className="font-display text-2xl text-[var(--gold)] tabular-nums">{String(timer).padStart(2, "0")}</div>
+          <div className="font-display text-2xl text-[var(--gold)] tabular-nums">
+            {String(timer).padStart(2, "0")}
+          </div>
           <button
-            onClick={() => { sfx.ready(); onReady(); }}
+            onClick={() => {
+              sfx.ready();
+              onReady();
+            }}
             className="px-3 py-1.5 border-2 border-[var(--gold)] text-[var(--gold)] text-[10px] uppercase tracking-widest active:scale-95"
-          >Ready</button>
+          >
+            Ready
+          </button>
         </div>
       ) : (
         <div className="flex items-center gap-1 shrink-0">
           {[0, 1, 2].map((i) => (
-            <div key={i} className={`w-2.5 h-2.5 rotate-45 ${i < found ? "bg-[var(--gold)]" : "border border-[var(--gold)]/40"}`} />
+            <div
+              key={i}
+              className={`w-2.5 h-2.5 rotate-45 ${i < found ? "bg-[var(--gold)]" : "border border-[var(--gold)]/40"}`}
+            />
           ))}
-          <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">Found {found}/3</span>
+          <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+            Found {found}/3
+          </span>
         </div>
       )}
     </div>
@@ -570,7 +665,9 @@ function PhaseBar({ phase, timer, painting, found, onReady }: {
 /* ---------- Camouflage view ---------- */
 
 function CamouflageView({
-  bg, figures, setFigures,
+  bg,
+  figures,
+  setFigures,
 }: {
   bg: HTMLCanvasElement;
   figures: FigureState[];
@@ -707,7 +804,8 @@ function CamouflageView({
       const py = (CH / 2 - f.y) * s + viewSize.h * 0.12;
       setPan({ x: px, y: py });
     } else {
-      setZoom(1); setPan({ x: 0, y: 0 });
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
     }
   };
 
@@ -715,7 +813,8 @@ function CamouflageView({
   const dragState = useRef<{
     mode: "move" | "paint" | null;
     pointerId: number;
-    startX: number; startY: number;
+    startX: number;
+    startY: number;
     origFig?: { x: number; y: number };
   } | null>(null);
 
@@ -733,8 +832,10 @@ function CamouflageView({
     if (!f) return;
     // Convert world -> figure-local (undo rotation/mirror)
     const toLocal = (wx: number, wy: number) => {
-      const dx = wx - f.x, dy = wy - f.y;
-      const cos = Math.cos(-f.rot), sin = Math.sin(-f.rot);
+      const dx = wx - f.x,
+        dy = wy - f.y;
+      const cos = Math.cos(-f.rot),
+        sin = Math.sin(-f.rot);
       let lx = dx * cos - dy * sin;
       let ly = dx * sin + dy * cos;
       if (f.mirror) lx = -lx;
@@ -800,7 +901,12 @@ function CamouflageView({
       }
       pushUndo(selected);
       drawing.current = { lastX: w.x, lastY: w.y };
-      dragState.current = { mode: "paint", pointerId: e.pointerId, startX: e.clientX, startY: e.clientY };
+      dragState.current = {
+        mode: "paint",
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+      };
       sfx.pencil();
       paintAt(w.x, w.y);
     } else {
@@ -810,7 +916,13 @@ function CamouflageView({
         setSelected(hit);
         sfx.brush();
         const f = figures[hit];
-        dragState.current = { mode: "move", pointerId: e.pointerId, startX: w.x, startY: w.y, origFig: { x: f.x, y: f.y } };
+        dragState.current = {
+          mode: "move",
+          pointerId: e.pointerId,
+          startX: w.x,
+          startY: w.y,
+          origFig: { x: f.x, y: f.y },
+        };
       }
     }
   };
@@ -823,7 +935,8 @@ function CamouflageView({
       paintAt(w.x, w.y, drawing.current.lastX, drawing.current.lastY);
       drawing.current = { lastX: w.x, lastY: w.y };
     } else if (ds.mode === "move" && ds.origFig) {
-      const dx = w.x - ds.startX, dy = w.y - ds.startY;
+      const dx = w.x - ds.startX,
+        dy = w.y - ds.startY;
       setFigures((prev) => {
         const next = prev.slice();
         const f = next[selected];
@@ -879,7 +992,10 @@ function CamouflageView({
           {figures.map((f, i) => (
             <button
               key={i}
-              onClick={() => { setSelected(i); sfx.click(); }}
+              onClick={() => {
+                setSelected(i);
+                sfx.click();
+              }}
               className={`w-10 h-10 border ${selected === i ? "border-[var(--gold)]" : "border-[var(--gold)]/30"} bg-[var(--secondary)] grid place-items-center`}
             >
               <FigureThumb pose={f.pose} />
@@ -906,7 +1022,9 @@ function CamouflageView({
         {painting && (
           <div className="absolute top-2 left-2 right-2 pointer-events-none">
             <div className="inline-block text-[9px] uppercase tracking-widest text-[var(--gold)]/70 bg-background/60 px-2 py-1 rounded-sm pointer-events-auto">
-              {tool === "fill" ? "Fill — tap figure to flood with color" : "Fine Pencil — draws only on figure"}
+              {tool === "fill"
+                ? "Fill — tap figure to flood with color"
+                : "Fine Pencil — draws only on figure"}
             </div>
           </div>
         )}
@@ -916,12 +1034,17 @@ function CamouflageView({
       <div className="border-t border-[var(--gold)]/20 bg-[var(--card)]">
         {painting && (
           <div className="px-3 py-2 flex items-center gap-2 border-b border-[var(--gold)]/10">
-            <span className="text-[9px] uppercase tracking-widest text-muted-foreground shrink-0">Palette</span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground shrink-0">
+              Palette
+            </span>
             <div className="flex gap-1.5 flex-1 overflow-x-auto">
               {palette.map((c, i) => (
                 <button
                   key={i}
-                  onClick={() => { setColor(c); sfx.click(); }}
+                  onClick={() => {
+                    setColor(c);
+                    sfx.click();
+                  }}
                   className={`w-8 h-8 rounded-sm shrink-0 border-2 ${color === c ? "border-[var(--gold)]" : "border-transparent"}`}
                   style={{ background: c }}
                 />
@@ -929,19 +1052,31 @@ function CamouflageView({
             </div>
             <div className="flex gap-1 shrink-0">
               <button
-                onClick={() => { setTool("pencil"); sfx.click(); }}
+                onClick={() => {
+                  setTool("pencil");
+                  sfx.click();
+                }}
                 className={`h-8 px-2 grid place-items-center border text-[10px] uppercase tracking-widest ${tool === "pencil" ? "border-[var(--gold)] text-[var(--gold)]" : "border-[var(--gold)]/20 text-[var(--gold)]/60"}`}
                 aria-pressed={tool === "pencil"}
                 title="Pencil"
-              >✎</button>
+              >
+                ✎
+              </button>
               <button
-                onClick={() => { setTool("fill"); sfx.click(); }}
+                onClick={() => {
+                  setTool("fill");
+                  sfx.click();
+                }}
                 className={`h-8 px-2 grid place-items-center border text-[10px] uppercase tracking-widest ${tool === "fill" ? "border-[var(--gold)] text-[var(--gold)]" : "border-[var(--gold)]/20 text-[var(--gold)]/60"}`}
                 aria-pressed={tool === "fill"}
                 title="Fill"
-              >🪣</button>
+              >
+                🪣
+              </button>
             </div>
-            <div className={`flex gap-1 shrink-0 ${tool === "fill" ? "opacity-40 pointer-events-none" : ""}`}>
+            <div
+              className={`flex gap-1 shrink-0 ${tool === "fill" ? "opacity-40 pointer-events-none" : ""}`}
+            >
               {[3, 6, 12].map((s) => (
                 <button
                   key={s}
@@ -964,7 +1099,9 @@ function CamouflageView({
           <button
             onClick={undo}
             className="py-2.5 px-4 border border-[var(--gold)]/40 text-[var(--gold)]/80 uppercase tracking-widest text-[11px]"
-          >↩ Undo</button>
+          >
+            ↩ Undo
+          </button>
         </div>
       </div>
     </div>
@@ -976,7 +1113,9 @@ function IconBtn({ onClick, label }: { onClick: () => void; label: string }) {
     <button
       onClick={onClick}
       className="w-10 h-10 border border-[var(--gold)]/40 text-[var(--gold)] grid place-items-center text-lg active:scale-95"
-    >{label}</button>
+    >
+      {label}
+    </button>
   );
 }
 
@@ -1000,7 +1139,12 @@ function hitFigure(figs: FigureState[], wx: number, wy: number): number {
 /* ---------- Hunt view ---------- */
 
 function HuntView({
-  botBg, botFigures, onFound, missed, playerFigures, flashIdx,
+  botBg,
+  botFigures,
+  onFound,
+  missed,
+  playerFigures,
+  flashIdx,
 }: {
   botBg: HTMLCanvasElement;
   botFigures: FigureState[];
@@ -1065,7 +1209,15 @@ function HuntView({
 
   // Gestures: pinch to zoom, drag to pan, tap to hunt
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const gesture = useRef<{ mode: "none" | "pan" | "pinch" | "tap"; startPan: { x: number; y: number }; startZoom: number; startDist: number; startX: number; startY: number; downTime: number } | null>(null);
+  const gesture = useRef<{
+    mode: "none" | "pan" | "pinch" | "tap";
+    startPan: { x: number; y: number };
+    startZoom: number;
+    startDist: number;
+    startX: number;
+    startY: number;
+    downTime: number;
+  } | null>(null);
 
   const screenToWorld = (sx: number, sy: number) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -1085,17 +1237,23 @@ function HuntView({
     if (pointers.current.size === 1) {
       gesture.current = {
         mode: "tap",
-        startPan: { ...pan }, startZoom: zoom, startDist: 0,
-        startX: e.clientX, startY: e.clientY,
+        startPan: { ...pan },
+        startZoom: zoom,
+        startDist: 0,
+        startX: e.clientX,
+        startY: e.clientY,
         downTime: Date.now(),
       };
     } else if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
       gesture.current = {
         mode: "pinch",
-        startPan: { ...pan }, startZoom: zoom,
+        startPan: { ...pan },
+        startZoom: zoom,
         startDist: Math.hypot(a.x - b.x, a.y - b.y),
-        startX: 0, startY: 0, downTime: Date.now(),
+        startX: 0,
+        startY: 0,
+        downTime: Date.now(),
       };
     }
   };
@@ -1106,12 +1264,14 @@ function HuntView({
     const g = gesture.current;
     if (!g) return;
     if (g.mode === "tap") {
-      const dx = e.clientX - g.startX, dy = e.clientY - g.startY;
+      const dx = e.clientX - g.startX,
+        dy = e.clientY - g.startY;
       if (Math.hypot(dx, dy) > 8) {
         gesture.current = { ...g, mode: "pan" };
       }
     } else if (g.mode === "pan") {
-      const dx = e.clientX - g.startX, dy = e.clientY - g.startY;
+      const dx = e.clientX - g.startX,
+        dy = e.clientY - g.startY;
       setPan({ x: g.startPan.x + dx, y: g.startPan.y + dy });
     } else if (g.mode === "pinch" && pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
@@ -1142,7 +1302,10 @@ function HuntView({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Opponent canvas — 80% */}
-      <div ref={wrapRef} className="relative flex-[8] min-h-0 overflow-hidden bg-[var(--ink-black)]">
+      <div
+        ref={wrapRef}
+        className="relative flex-[8] min-h-0 overflow-hidden bg-[var(--ink-black)]"
+      >
         <canvas
           ref={canvasRef}
           onPointerDown={onPointerDown}
@@ -1176,7 +1339,11 @@ function HuntView({
               style={{ width: 52, height: 78 }}
             >
               <MiniFigure fig={f} />
-              {f.found && <div className="absolute inset-0 grid place-items-center text-destructive text-xl">✕</div>}
+              {f.found && (
+                <div className="absolute inset-0 grid place-items-center text-destructive text-xl">
+                  ✕
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -1190,8 +1357,10 @@ function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
   for (let i = figs.length - 1; i >= 0; i--) {
     const f = figs[i];
     if (f.found) continue;
-    const dx = wx - f.x, dy = wy - f.y;
-    const cos = Math.cos(-f.rot), sin = Math.sin(-f.rot);
+    const dx = wx - f.x,
+      dy = wy - f.y;
+    const cos = Math.cos(-f.rot),
+      sin = Math.sin(-f.rot);
     let lx = dx * cos - dy * sin;
     let ly = dx * sin + dy * cos;
     if (f.mirror) lx = -lx;
@@ -1202,7 +1371,9 @@ function hitBotFigure(figs: FigureState[], wx: number, wy: number): number {
     try {
       const d = ctx.getImageData(Math.floor(px), Math.floor(py), 1, 1).data;
       if (d[3] > 32) return i;
-    } catch { /* CORS or bounds */ }
+    } catch {
+      /* CORS or bounds */
+    }
   }
   return -1;
 }
@@ -1212,7 +1383,8 @@ function MiniFigure({ fig }: { fig: FigureState }) {
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
-    c.width = FIGURE_W; c.height = FIGURE_H;
+    c.width = FIGURE_W;
+    c.height = FIGURE_H;
     const ctx = c.getContext("2d")!;
     ctx.clearRect(0, 0, FIGURE_W, FIGURE_H);
     // Draw pose silhouette in white so figures are visible on the dark minimap

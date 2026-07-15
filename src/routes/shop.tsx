@@ -2,9 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState } from "react";
 import {
-  useEconomy, buyInk, buyAvatar, selectAvatar, openChest,
-  canOpenChestFree, INK_MAX, INK_BUY_COST, AVATAR_COST, CHEST_PAID_COST,
-  DAILY_WINS_FOR_CHEST, type ChestReward,
+  useEconomy,
+  buyInk,
+  buyAvatar,
+  selectAvatar,
+  openChest,
+  canOpenChestFree,
+  INK_MAX,
+  INK_BUY_COST,
+  AVATAR_COST,
+  CHEST_PAID_COST,
+  DAILY_WINS_FOR_CHEST,
+  type ChestReward,
 } from "@/game/store";
 import { sfx } from "@/game/audio";
 import { AvatarBadge, TopHUD } from "./index";
@@ -39,7 +48,13 @@ function ShopPage() {
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
       <TopHUD ink={eco.ink} coins={eco.coins} avatar={eco.selectedAvatar} />
       <div className="px-5 py-4 flex items-center justify-between">
-        <Link to="/" onClick={() => sfx.click()} className="text-xs text-muted-foreground uppercase tracking-widest">← Gallery</Link>
+        <Link
+          to="/"
+          onClick={() => sfx.click()}
+          className="text-xs text-muted-foreground uppercase tracking-widest"
+        >
+          ← Gallery
+        </Link>
         <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold)]/70">Atelier</p>
       </div>
 
@@ -47,13 +62,19 @@ function ShopPage() {
         {(["ink", "avatars", "chest"] as const).map((t) => (
           <button
             key={t}
-            onClick={() => { sfx.click(); setActiveTab(t); setReward(null); }}
+            onClick={() => {
+              sfx.click();
+              setActiveTab(t);
+              setReward(null);
+            }}
             className={`flex-1 py-2 text-[10px] uppercase tracking-[0.25em] border ${
               activeTab === t
                 ? "border-[var(--gold)] text-[var(--gold)] bg-[var(--gold)]/10"
                 : "border-[var(--gold)]/20 text-muted-foreground"
             }`}
-          >{t}</button>
+          >
+            {t}
+          </button>
         ))}
       </div>
 
@@ -68,7 +89,10 @@ function ShopPage() {
               <div className="font-display text-2xl">One Vial of Ink</div>
               <div className="text-xs text-muted-foreground mt-1">+1 Ink (max {INK_MAX})</div>
               <button
-                onClick={() => { if (buyInk()) sfx.snap(); else sfx.penalty(); }}
+                onClick={() => {
+                  if (buyInk()) sfx.snap();
+                  else sfx.penalty();
+                }}
                 disabled={eco.coins < INK_BUY_COST || eco.ink >= INK_MAX}
                 className="mt-4 px-6 py-3 border-2 border-[var(--gold)] text-[var(--gold)] uppercase tracking-widest text-xs disabled:opacity-40 active:scale-95 transition"
               >
@@ -113,8 +137,13 @@ function ShopPage() {
           <div className="space-y-4">
             <div className="relative border border-[var(--gold)]/30 p-6 text-center overflow-hidden">
               {/* Rotating gold beams behind the chest while spinning / on reward. */}
-              <div className={`chest-beams ${spinning || reward ? "chest-beams-on" : ""}`} aria-hidden />
-              <div className={`relative mx-auto mb-3 w-28 h-28 grid place-items-center ${spinning ? "chest-spin" : reward ? "chest-pop" : ""}`}>
+              <div
+                className={`chest-beams ${spinning || reward ? "chest-beams-on" : ""}`}
+                aria-hidden
+              />
+              <div
+                className={`relative mx-auto mb-3 w-28 h-28 grid place-items-center ${spinning ? "chest-spin" : reward ? "chest-pop" : ""}`}
+              >
                 <div className="absolute inset-0 rounded-full bg-[var(--gold)]/10 blur-xl" />
                 <div className="relative text-7xl text-[var(--gold)] leading-none drop-shadow-[0_0_18px_oklch(0.78_0.13_82/0.6)]">
                   ❖
@@ -143,8 +172,12 @@ function ShopPage() {
               </div>
               {reward && (
                 <div className="relative z-10 mt-4 pt-4 border-t border-[var(--gold)]/20 animate-[fade-in_0.4s_ease-out]">
-                  <div className="text-[10px] uppercase tracking-widest text-[var(--gold)]">Bounty</div>
-                  <div className="font-display text-3xl mt-1 text-[var(--gold)]">◈ +{reward.ink} · ◉ +{reward.coins}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-[var(--gold)]">
+                    Bounty
+                  </div>
+                  <div className="font-display text-3xl mt-1 text-[var(--gold)]">
+                    ◈ +{reward.ink} · ◉ +{reward.coins}
+                  </div>
                 </div>
               )}
             </div>
@@ -161,7 +194,14 @@ function AvatarBadgeLarge({ id }: { id: number }) {
   if (!av) return <AvatarBadge id={id} />;
   return (
     <div className="w-full h-full overflow-hidden">
-      <img src={av.url} alt={av.name} loading="lazy" width={256} height={256} className="w-full h-full object-cover" />
+      <img
+        src={av.url}
+        alt={av.name}
+        loading="lazy"
+        width={256}
+        height={256}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }

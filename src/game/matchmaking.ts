@@ -94,20 +94,23 @@ export async function findMatch(opts: {
       clearTimeout(timeoutHandle);
       opts.signal?.removeEventListener("abort", onAbort);
     };
-    const finish = (info: MatchInfo) => { cleanup(); resolve(info); };
+    const finish = (info: MatchInfo) => {
+      cleanup();
+      resolve(info);
+    };
     const fail = (err: unknown) => {
       cleanup();
       // Best-effort queue removal.
-      void supabase.rpc("cancel_queue").then(() => {}, () => {});
+      void supabase.rpc("cancel_queue").then(
+        () => {},
+        () => {},
+      );
       reject(err);
     };
     const onAbort = () => fail(new Error("cancelled"));
     opts.signal?.addEventListener("abort", onAbort);
 
-    const timeoutHandle = setTimeout(
-      () => fail(new Error("timeout")),
-      opts.timeoutMs ?? 20000,
-    );
+    const timeoutHandle = setTimeout(() => fail(new Error("timeout")), opts.timeoutMs ?? 20000);
 
     channel = supabase
       .channel(`mm:${selfId}`)
@@ -180,11 +183,7 @@ export async function markLeft(matchId: string, role: "a" | "b") {
   }
 }
 
-export async function submitReady(
-  matchId: string,
-  role: "a" | "b",
-  figures: SerializedFigure[],
-) {
+export async function submitReady(matchId: string, role: "a" | "b", figures: SerializedFigure[]) {
   const patch =
     role === "a"
       ? { a_ready: true, a_figures: figures as unknown as Json }

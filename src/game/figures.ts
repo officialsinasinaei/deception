@@ -53,9 +53,7 @@ export function posePath2D(pose: FigurePose, w = FIGURE_W, h = FIGURE_H): Path2D
   // Path is authored in a 100x200 box; scale by (w/100, h/200) and translate to center at (0,0).
   const p = new Path2D();
   const src = new Path2D(pose.path);
-  const m = new DOMMatrix()
-    .translate(-w / 2, -h / 2)
-    .scale(w / 100, h / 200);
+  const m = new DOMMatrix().translate(-w / 2, -h / 2).scale(w / 100, h / 200);
   p.addPath(src, m);
   return p;
 }

@@ -28,6 +28,7 @@ Enable Lovable Cloud, then add three tables:
 - **`matches`** (`id` PK, `player_a`, `player_b`, `painting_id`, `phase` enum `camouflage|hunt|ended`, `winner`, `created_at`, plus JSONB columns `a_figures`, `b_figures`, `a_findings`, `b_findings`, `a_ready`, `b_ready`, `a_left`, `b_left`).
 
 Pairing is an atomic RPC `claim_or_enqueue(p_avatar_id)` (SECURITY DEFINER):
+
 1. `SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1` on the oldest queue row that isn't the caller.
 2. If found: delete both rows, insert `matches` with random painting, return `{ matched: true, match_id }`.
 3. If none: upsert self into queue, return `{ matched: false }`.

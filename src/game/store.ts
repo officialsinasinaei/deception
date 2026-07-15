@@ -2,12 +2,12 @@
 import { useSyncExternalStore } from "react";
 
 export interface Economy {
-  ink: number;                 // 0..10
-  inkLastRegenAt: number;      // ms epoch
+  ink: number; // 0..10
+  inkLastRegenAt: number; // ms epoch
   coins: number;
   dailyWins: number;
-  dailyWinCycleStart: number;  // ms epoch (0 = none)
-  ownedAvatars: number[];      // avatar ids
+  dailyWinCycleStart: number; // ms epoch (0 = none)
+  ownedAvatars: number[]; // avatar ids
   selectedAvatar: number;
   lastChestOpenAt: number;
 }
@@ -39,10 +39,18 @@ function makeDefault(): Economy {
 
 // Stable snapshot for SSR / hydration.
 const SSR_SNAPSHOT: Economy = {
-  ink: 10, inkLastRegenAt: 0, coins: 5, dailyWins: 0,
-  dailyWinCycleStart: 0, ownedAvatars: [0], selectedAvatar: 0, lastChestOpenAt: 0,
+  ink: 10,
+  inkLastRegenAt: 0,
+  coins: 5,
+  dailyWins: 0,
+  dailyWinCycleStart: 0,
+  ownedAvatars: [0],
+  selectedAvatar: 0,
+  lastChestOpenAt: 0,
 };
-function getServerSnapshot(): Economy { return SSR_SNAPSHOT; }
+function getServerSnapshot(): Economy {
+  return SSR_SNAPSHOT;
+}
 
 let state: Economy = makeDefault();
 let loaded = false;
@@ -107,11 +115,7 @@ export function getEconomy(): Economy {
 }
 
 export function useEconomy(): Economy {
-  return useSyncExternalStore(
-    subscribe,
-    getEconomy,
-    getServerSnapshot,
-  );
+  return useSyncExternalStore(subscribe, getEconomy, getServerSnapshot);
 }
 
 export function nextInkRegenMs(): number {
@@ -203,8 +207,13 @@ export interface ChestReward {
 export function canOpenChestFree(): boolean {
   load();
   const now = Date.now();
-  const cycleActive = state.dailyWinCycleStart > 0 && now - state.dailyWinCycleStart < DAILY_CYCLE_MS;
-  return cycleActive && state.dailyWins >= DAILY_WINS_FOR_CHEST && state.lastChestOpenAt < state.dailyWinCycleStart;
+  const cycleActive =
+    state.dailyWinCycleStart > 0 && now - state.dailyWinCycleStart < DAILY_CYCLE_MS;
+  return (
+    cycleActive &&
+    state.dailyWins >= DAILY_WINS_FOR_CHEST &&
+    state.lastChestOpenAt < state.dailyWinCycleStart
+  );
 }
 
 export function openChest(paid: boolean): ChestReward | null {

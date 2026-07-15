@@ -17,7 +17,10 @@ function MatchmakingPage() {
   const doneRef = useRef(false);
 
   useEffect(() => {
-    if (!canStartMatch()) { nav({ to: "/" }); return; }
+    if (!canStartMatch()) {
+      nav({ to: "/" });
+      return;
+    }
 
     const ctl = new AbortController();
     abortRef.current = ctl;
@@ -79,9 +82,7 @@ function MatchmakingPage() {
       <div className="text-center">
         <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)]/70">Matchmaking</p>
         <h1 className="font-display text-3xl italic mt-3 text-[var(--ivory)]">
-          {phase === "searching"
-            ? "Searching for opponents…"
-            : "Rival found."}
+          {phase === "searching" ? "Searching for opponents…" : "Rival found."}
         </h1>
         {phase === "searching" && (
           <p className="mt-2 text-[10px] uppercase tracking-widest text-muted-foreground tabular-nums">
@@ -94,7 +95,10 @@ function MatchmakingPage() {
         <div className="absolute inset-0 rounded-full border border-[var(--gold)]/30" />
         <div className="absolute inset-3 rounded-full border border-[var(--gold)]/20" />
         <div className="absolute inset-6 rounded-full border border-[var(--gold)]/10" />
-        <div className="absolute inset-0 rounded-full animate-spin origin-center" style={{ animationDuration: "3s" }}>
+        <div
+          className="absolute inset-0 rounded-full animate-spin origin-center"
+          style={{ animationDuration: "3s" }}
+        >
           <div className="w-3 h-3 rounded-full bg-[var(--gold)] mx-auto -mt-1.5" />
         </div>
         <div className="absolute inset-0 grid place-items-center">
@@ -109,9 +113,7 @@ function MatchmakingPage() {
       </p>
 
       {phase === "searching" && elapsed >= 4 && (
-        <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/60">
-          Almost there…
-        </p>
+        <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/60">Almost there…</p>
       )}
     </div>
   );
